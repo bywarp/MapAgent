@@ -1,0 +1,5 @@
+name: MapAgent
+main: co.bywarp.mapagent.MapAgent
+website: www.bywarp.co/mapagent
+version: 0.1
+author: Warp

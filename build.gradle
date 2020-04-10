@@ -1,0 +1,75 @@
+plugins {
+    id 'java'
+    id 'maven'
+    id 'com.github.johnrengelman.shadow' version '4.0.0'
+}
+
+version '1.0-SNAPSHOT'
+sourceCompatibility = 1.8
+
+compileJava.options.encoding = 'UTF-8'
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+configurations {
+    extraLibs
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+    jcenter()
+
+    maven {
+        name 'jitpack'
+        url 'https://jitpack.io'
+    }
+
+    maven { url 'https://m1ke.co/gradle/repo' }
+    maven {
+        name 'spigot-repo'
+        url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
+    }
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+}
+
+dependencies {
+    compile('co.m1ke:basic:0.4') {
+        exclude group: 'afu'
+        exclude group: 'com.mysql'
+        exclude group: 'org.apache.commons'
+        exclude group: 'org.checkframework'
+        exclude group: 'codehaus.mojo'
+        exclude group: 'gjt.mm.mysql'
+        exclude group: 'org.hamcrest'
+        exclude group: 'org.objensis'
+        exclude group: 'org.mockito'
+        exclude group: 'com.fasterxml'
+        exclude group: 'com.google.guava'
+        exclude group: 'com.google.code.gson'
+        exclude group: 'com.sendgrid'
+    }
+
+    compile group: 'org.projectlombok', name: 'lombok', version: '1.18.10'
+    annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.10'
+
+    compileOnly group: 'org.spigotmc', name: 'spigot', version: '1.8.8-R0.1-SNAPSHOT'
+
+    configurations.compile.extendsFrom(configurations.extraLibs)
+}
+
+shadowJar {
+    destinationDir = file(melonExportTarget)
+
+    exclude "META-INF/*.SF"
+    exclude "META-INF/*.DSA"
+    exclude "META-INF/*.RSA"
+
+    classifier = null
+
+    manifest {
+        attributes 'Main-Class': 'co.bywarp.mapagent.MapAgent'
+    }
+}

@@ -1,0 +1,73 @@
+/*
+ * Copyright (c) 2019-2020 Warp <legal@warp.pw>
+ * All Rights Reserved.
+ *
+ * This software is proprietary and is designed and intended for internal use only.
+ * Unauthorized use, replication, distribution, or modification of this software
+ * in any capacity is unlawful and punishable by the full extent of the law.
+ */
+
+package co.bywarp.mapagent;
+
+import co.bywarp.mapagent.command.CommandHandler;
+import co.bywarp.mapagent.command.commands.AuthorCommand;
+import co.bywarp.mapagent.command.commands.BlocksCommand;
+import co.bywarp.mapagent.command.commands.CenterCommand;
+import co.bywarp.mapagent.command.commands.CreateCommand;
+import co.bywarp.mapagent.command.commands.GametypeCommand;
+import co.bywarp.mapagent.command.commands.MapInfoCommand;
+import co.bywarp.mapagent.command.commands.ParseCommand;
+import co.bywarp.mapagent.data.game.GameDataManager;
+import co.bywarp.mapagent.data.game.types.cannons.CannonsData;
+import co.bywarp.mapagent.data.game.types.deathrun.DeathRunData;
+import co.bywarp.mapagent.data.game.types.infected.InfectedData;
+import co.bywarp.mapagent.data.repository.MapDataRepository;
+import co.bywarp.mapagent.parcel.JsonParcel;
+import co.bywarp.mapagent.parser.Parser;
+
+import org.bukkit.plugin.java.JavaPlugin;
+
+import java.io.File;
+
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+public class MapAgent extends JavaPlugin {
+
+    private JsonParcel parcel;
+    private CommandHandler commandHandler;
+    private MapDataRepository repository;
+    private GameDataManager manager;
+
+    @Setter private Parser currentParse;
+
+    @Override
+    public void onEnable() {
+        this.parcel = new JsonParcel(this, new File("agent.json"));
+        this.commandHandler = new CommandHandler(this);
+        this.repository = new MapDataRepository(this, new File("repository.json"));
+        this.manager = new GameDataManager(this,
+                null,
+                new CannonsData(),
+                new DeathRunData(),
+                new InfectedData());
+
+        this.registerCommands();
+    }
+
+    @Override
+    public void onDisable() {
+    }
+
+    private void registerCommands() {
+        commandHandler.registerCommand("author", new String[] { "setauthor" }, new AuthorCommand(repository));
+        commandHandler.registerCommand("blocks", new BlocksCommand(manager, repository));
+        commandHandler.registerCommand("center", new String[] { "setcenter" }, new CenterCommand(repository));
+        commandHandler.registerCommand("create", new CreateCommand(repository));
+        commandHandler.registerCommand("gametype", new String[] { "setgametype" }, new GametypeCommand(repository));
+        commandHandler.registerCommand("mapinfo", new MapInfoCommand(repository));
+        commandHandler.registerCommand("parse", new ParseCommand(this, parcel.getExtruderPreferences(), repository, manager));
+    }
+
+}

@@ -1,0 +1,11 @@
+.idea/
+.gradle/
+src/test
+build/
+gradle/
+dist/
+out/
+
+.floo
+.flooignore
+.DS_Store
