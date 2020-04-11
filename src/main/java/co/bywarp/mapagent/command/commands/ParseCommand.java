@@ -47,8 +47,6 @@ public class ParseCommand extends Command {
     private MapDataRepository repository;
     private GameDataManager manager;
 
-    private ConversationFactory conversationFactory;
-
     public ParseCommand(MapAgent plugin, ExtruderPreferences preferences, MapDataRepository repository, GameDataManager manager) {
         super(Lang.generateHelpList("Parse", "Listing Commands:",
                 "/parse <radius> <maxY>",
@@ -130,13 +128,12 @@ public class ParseCommand extends Command {
 
             MapParseOptions options = new MapParseOptions(getPlugin(), container.getName(), container.getAuthor(), container.getCenter(), radius, maxY);
             Parser parser = new Parser(plugin, preferences, options, manager);
-            this.conversationFactory = new ConversationFactory(plugin)
+            ConversationFactory conversationFactory = new ConversationFactory(plugin)
                     .withFirstPrompt(new ConfirmationPrompt(parser, plugin, container.getName()))
                     .withEscapeSequence("/no")
                     .withModality(false)
                     .withLocalEcho(false);
 
-            // runnable
             BukkitTask task = new BukkitRunnable() {
 
                 World world = client.getWorld();
@@ -149,7 +146,6 @@ public class ParseCommand extends Command {
                 List<Location> list = new ArrayList<Location>() {
                     {
                         addAll(createBorder(world, corner1, corner2, space));
-                        //addAll(createBorder(world, new Location(world, 308, 66, -636), new Location(world, 313, 70, -632), 0.5));
                     }
                 };
 
@@ -217,7 +213,7 @@ public class ParseCommand extends Command {
     }
 
     public List<Location> createBorder(World world, Location corner1, Location corner2, double particleDistance) {
-        List<Location> result = new ArrayList<Location>();
+        List<Location> result = new ArrayList<>();
         double minX = Math.min(corner1.getX(), corner2.getX());
         double minY = Math.min(corner1.getY(), corner2.getY());
         double minZ = Math.min(corner1.getZ(), corner2.getZ());
