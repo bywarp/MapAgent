@@ -23,13 +23,22 @@ import co.bywarp.mapagent.utils.text.Lang;
 
 import co.m1ke.basic.utils.Comparables;
 
+import org.bukkit.Effect;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.conversations.Conversable;
+import org.bukkit.conversations.Conversation;
 import org.bukkit.conversations.ConversationContext;
 import org.bukkit.conversations.ConversationFactory;
 import org.bukkit.conversations.Prompt;
 import org.bukkit.conversations.StringPrompt;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ParseCommand extends Command {
 
@@ -112,23 +121,50 @@ public class ParseCommand extends Command {
                 return CommandReturn.EXIT;
             }
 
+            int radius = Integer.parseInt(args[0]);
             int maxY = Integer.parseInt(args[1]);
             if (maxY > 256 || maxY < 0) {
                 client.sendMessage(Lang.generate("Parse", "Invalid Max-Y Coordinate &f[" + args[1] + "]"));
                 return CommandReturn.EXIT;
             }
 
-            MapParseOptions options = new MapParseOptions(getPlugin(), container.getName(), container.getAuthor(), container.getCenter(), Integer.parseInt(args[0]), maxY);
+            MapParseOptions options = new MapParseOptions(getPlugin(), container.getName(), container.getAuthor(), container.getCenter(), radius, maxY);
             Parser parser = new Parser(plugin, preferences, options, manager);
             this.conversationFactory = new ConversationFactory(plugin)
                     .withFirstPrompt(new ConfirmationPrompt(parser, plugin, container.getName()))
                     .withEscapeSequence("/no")
-                    .withTimeout(10)
                     .withModality(false)
                     .withLocalEcho(false);
 
+            // runnable
+            BukkitTask task = new BukkitRunnable() {
+
+                World world = client.getWorld();
+
+                Location center = container.getCenter().toLocation(world).clone();
+                Location corner1 = center.clone().add(radius, maxY - center.clone().getY(), radius);
+                Location corner2 = center.clone().subtract(radius, center.clone().getY(), radius);
+
+                double space = 0.5;
+                List<Location> list = new ArrayList<Location>() {
+                    {
+                        addAll(createBorder(world, corner1, corner2, space));
+                        //addAll(createBorder(world, new Location(world, 308, 66, -636), new Location(world, 313, 70, -632), 0.5));
+                    }
+                };
+
+                @Override
+                public void run() {
+                    list.forEach(loc -> world.playEffect(loc, Effect.COLOURED_DUST, 10));
+                }
+
+            }.runTaskTimer(plugin, 0L, 20L);
+
             Conversable conversable = client.getPlayer();
-            conversable.beginConversation(conversationFactory.buildConversation(conversable));
+            Conversation conversation = conversationFactory.buildConversation(conversable);
+            conversation.getContext().setSessionData("visualizer", task);
+
+            conversable.beginConversation(conversation);
             return CommandReturn.EXIT;
         }
         return CommandReturn.HELP_MENU;
@@ -148,14 +184,18 @@ public class ParseCommand extends Command {
 
         @Override
         public String getPromptText(ConversationContext context) {
-            return Lang.generate("Parse", "Are you sure you want begin parsing &f" + mapName + "&7?") + "\n"
-                    + Lang.generate("Parse", "Type &f(Y)ES &7to confirm, and &f(N)O &7to abort.");
+            return Lang.generate("Parse", "Are you sure you want begin parsing &f" + mapName.split("_")[1] + "&7?") + "\n"
+                    + Lang.colorMessage(" &7- &fThe visualizer will help you ensure your settings are correct.") + "\n"
+                    + Lang.colorMessage(" &7- &fType &a(Y)ES &fto confirm, or &c(N)O &fto abort.");
         }
 
         @Override
-        public Prompt acceptInput(ConversationContext conversationContext, String s) {
-            Conversable conversable = conversationContext.getForWhom();
+        public Prompt acceptInput(ConversationContext context, String s) {
+            Conversable conversable = context.getForWhom();
             if (conversable instanceof CommandSender) {
+                BukkitTask visualizer = (BukkitTask) context.getSessionData("visualizer");
+                visualizer.cancel();
+
                 if (s.equalsIgnoreCase("yes") || s.equalsIgnoreCase("y")) {
                     parser.start((Player) conversable);
                     plugin.setCurrentParse(parser);
@@ -168,12 +208,41 @@ public class ParseCommand extends Command {
                     return END_OF_CONVERSATION;
                 }
 
-                ((CommandSender) conversable).sendMessage(Lang.generate("Parse", "Invalid Response &f[" + s + "]&7, cancelling pending parse action."));
-                return Prompt.END_OF_CONVERSATION;
+                return END_OF_CONVERSATION;
             }
-            return null;
+
+            return END_OF_CONVERSATION;
         }
 
     }
+
+    public List<Location> createBorder(World world, Location corner1, Location corner2, double particleDistance) {
+        List<Location> result = new ArrayList<Location>();
+        double minX = Math.min(corner1.getX(), corner2.getX());
+        double minY = Math.min(corner1.getY(), corner2.getY());
+        double minZ = Math.min(corner1.getZ(), corner2.getZ());
+        double maxX = Math.max(corner1.getX(), corner2.getX());
+        double maxY = Math.max(corner1.getY(), corner2.getY());
+        double maxZ = Math.max(corner1.getZ(), corner2.getZ());
+
+        for (double x = minX; x <= maxX; x += particleDistance) {
+            for (double y = minY; y <= maxY; y += particleDistance) {
+                for (double z = minZ; z <= maxZ; z += particleDistance) {
+                    int components = 0;
+                    if (x == minX || x == maxX) components++;
+                    if (y == minY || y == maxY) components++;
+                    if (z == minZ || z == maxZ) components++;
+                    if (components >= 2) {
+                        result.add(new Location(world, x, y, z));
+                    }
+
+                }
+            }
+        }
+
+        return result;
+    }
+
+
 
 }
