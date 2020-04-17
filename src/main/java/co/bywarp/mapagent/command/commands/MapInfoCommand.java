@@ -42,6 +42,14 @@ public class MapInfoCommand extends Command {
         client.sendMessage(Lang.colorMessage(" &7- &fMap Name: &e" + container.getName()));
         client.sendMessage(Lang.colorMessage(" &7- &fMap Author: &e" + container.getAuthor()));
         client.sendMessage(Lang.colorMessage(" &7- &fCenter: &e" + Lang.prettifyLocation(container.getCenter())));
+        client.sendMessage(Lang.colorMessage(" &7- &fData:"));
+
+        if (container.getData().isEmpty()) {
+            client.sendMessage(Lang.colorMessage(" &7  -> &fThis map has no custom data."));
+        } else {
+            container.getData().forEach((k, v) -> client.sendMessage(Lang.colorMessage(" &7  -> &f" + k + ": &e" + v)));
+        }
+
         return CommandReturn.EXIT;
     }
 

@@ -24,5 +24,6 @@ public class MapParseOptions {
     private MapPoint center;
     private int radius;
     private int maxY;
+    private int minY;
 
 }

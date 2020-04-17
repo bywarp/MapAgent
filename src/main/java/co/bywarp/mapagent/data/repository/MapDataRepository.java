@@ -29,7 +29,9 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.AbstractMap;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Consumer;
 
 public class MapDataRepository {
@@ -76,7 +78,8 @@ public class MapDataRepository {
                         entry.getString("name"),
                         entry.getString("game"),
                         entry.getString("author"),
-                        DataUtils.fromJson(entry.getJSONObject("center"))));
+                        DataUtils.fromJson(entry.getJSONObject("center")),
+                        entry.getJSONObject("data").toMap()));
             });
 
             logger.info("Loaded " + containers.size() + " entr" + Lang.cond(containers.size() > 1, "ies", "y") + " from the repository.");
@@ -112,7 +115,8 @@ public class MapDataRepository {
                 name,
                 game,
                 "None",
-                new MapPoint(0, 0, 0))
+                new MapPoint(0, 0, 0),
+                new HashMap<>())
         );
     }
 
@@ -222,6 +226,30 @@ public class MapDataRepository {
         success.accept(center);
     }
 
+    /**
+     * Attempts to set the center of
+     * a map container, provided a world.
+     *
+     * @param world the world
+     * @param key the key
+     * @param data the data
+     */
+    public <T> void addData(World world, String key, T data, Consumer<Map.Entry<String, T>> success, Consumer<Exception> failure) {
+        MapDataContainer container = getContainer(world);
+        if (container == null) {
+            failure.accept(new NullPointerException("MapDataContainer is null"));
+            return;
+        }
+
+        container.getData().put(key, data);
+        containers.replace(world.getName(), container);
+
+        this.updateStore();
+        this.write();
+
+        success.accept(new AbstractMap.SimpleEntry<>(key, data));
+    }
+
     public MapDataContainer getContainer(World world) {
         return getContainer(world.getName());
     }
@@ -243,7 +271,8 @@ public class MapDataRepository {
                     .put("center", new JSONObject()
                             .put("x", center.getX())
                             .put("y", center.getY())
-                            .put("z", center.getZ())));
+                            .put("z", center.getZ()))
+                    .put("data", container.getData()));
         }
 
         if (backup == updated) {

@@ -17,6 +17,8 @@ import co.bywarp.mapagent.data.game.GameData;
 import co.bywarp.mapagent.data.game.GameDataBlock;
 import co.bywarp.mapagent.data.game.GameDataManager;
 import co.bywarp.mapagent.data.game.marker.CornerMarker;
+import co.bywarp.mapagent.data.repository.MapDataContainer;
+import co.bywarp.mapagent.data.repository.MapDataRepository;
 import co.bywarp.mapagent.parcel.prefs.ExtruderPreferences;
 import co.bywarp.mapagent.update.UpdateEvent;
 import co.bywarp.mapagent.update.Updater;
@@ -69,6 +71,7 @@ public class Parser implements Listener, Closable {
     private MapAgent plugin;
     private ExtruderPreferences preferences;
     private MapParseOptions parseOptions;
+    private MapDataRepository repository;
     private GameDataManager dataManager;
     private ParseState state;
     private Updater updater;
@@ -83,6 +86,7 @@ public class Parser implements Listener, Closable {
     private int y;
     private int z;
     private int maxY;
+    private int minY;
     private int radius;
     private int processed;
     private long start;
@@ -100,10 +104,11 @@ public class Parser implements Listener, Closable {
     private HashMap<String, ArrayList<MapPoint>> customLocations;
     private HashMap<Location, Block> dataBlockCache;
 
-    public Parser(MapAgent plugin, ExtruderPreferences preferences, MapParseOptions parseOptions, GameDataManager dataManager) {
+    public Parser(MapAgent plugin, ExtruderPreferences preferences, MapParseOptions parseOptions, MapDataRepository repository, GameDataManager dataManager) {
         this.plugin = plugin;
         this.preferences = preferences;
         this.parseOptions = parseOptions;
+        this.repository = repository;
         this.dataManager = dataManager;
     }
 
@@ -128,6 +133,7 @@ public class Parser implements Listener, Closable {
         this.y = (int) center.getY();
         this.z = (int) center.getZ();
         this.maxY = parseOptions.getMaxY();
+        this.minY = parseOptions.getMinY();
         this.radius = parseOptions.getRadius();
         this.processed = 0;
         this.start = System.currentTimeMillis();
@@ -198,11 +204,12 @@ public class Parser implements Listener, Closable {
 
             // Reset Y if we hit the height limit
             if (y > maxY) {
-                y = 0;
+                y = minY;
                 z++;
             }
 
-            if (z >= center.getZ() + radius) {
+            if (z > center.getZ() + radius
+                    || z < center.getZ() - radius) {
                 z = z - (2 * radius);
                 if (hitEdge) {
                     x--; // Reverse direction after Corner A is found
@@ -211,22 +218,23 @@ public class Parser implements Listener, Closable {
                 }
             }
 
-            if (x >= center.getX() + radius) {
+            if (x > center.getX() + radius
+                    || x < center.getX() - radius) {
                 x = x - radius;
                 hitEdge = true;
                 return;
             }
 
-            if (x <= (center.getX() - radius) && hitEdge) {
+            if ((x < center.getX() + radius || x < center.getX() - radius) && hitEdge) {
                 if (cornerB != null) {
                     return;
                 }
             }
 
-            double percentDone = MathUtils.percent(((radius * 2) * (radius * 2) * maxY), processed);
+            double percentDone = MathUtils.percent(((radius * 2) * (radius * 2) * (maxY - center.getY())), processed);
             percentDone = Math.abs(100 - percentDone);
 
-            PlayerUtils.sendActionBar(Lang.colorMessage("&2&lMap Parse &8▬ &f" + nf.format(processed) + "/" + nf.format(((radius * 2) * (radius * 2) * maxY)) + " &7processed &e(" + df.format(percentDone) + "%)"));
+            PlayerUtils.sendActionBar(Lang.colorMessage("&2&lMap Parse &8▬ &f" + nf.format(processed) + "/" + nf.format(((radius * 2) * (radius * 2) * (maxY - center.getY()))) + " &7processed &e(" + df.format(percentDone) + "%)"));
             Block block = world.getBlockAt(x, y, z);
             world.playEffect(block.getLocation().clone().add(0, 0.5, 0), Effect.SPELL, 4);
 
@@ -262,6 +270,9 @@ public class Parser implements Listener, Closable {
                 if (dataBlock instanceof CornerMarker) {
                     if (cornerA == null) {
                         cornerA = block.getLocation();
+                        hitEdge = true;
+                        x = x - radius;
+
                         PlayerUtils.sendServerMessage(Lang.generate("Parse", "&6Corner A &7found at &f[" + Lang.prettifyLocation(dataMarker.getLocation()) + "]"));
                         clean(block, dataMarker);
                         return;
@@ -290,6 +301,7 @@ public class Parser implements Listener, Closable {
         // Done scanning, now compiling data.
         if (state == ParseState.PROCESSING) {
             JSONObject parcel = new JSONObject();
+            MapDataContainer container = repository.getContainer(world);
 
             // Compile team spawns
             JSONObject teamSpawns = new JSONObject();
@@ -323,6 +335,7 @@ public class Parser implements Listener, Closable {
                     .put("z", center.getZ()));
             parcel.put("spawns", teamSpawns);
             parcel.put("custom", customLocs);
+            parcel.put("data", new JSONObject(container.getData()));
 
             // Attempt to write parcel data to map parcel file
             try {
@@ -372,9 +385,7 @@ public class Parser implements Listener, Closable {
 
         if (state == ParseState.DONE) {
             PlayerUtils.sendServerMessage(Lang.generate("Parse", "Finished parsing &f" + mapName + " &7in &f" + TimeUtil.getShortenedTimeValue(System.currentTimeMillis() - start) + "&7."));
-            plugin.setCurrentParse(null);
-
-            this.close();
+            close();
         }
     }
 
@@ -394,7 +405,9 @@ public class Parser implements Listener, Closable {
     @Override
     public void close() {
         HandlerList.unregisterAll(this);
+        plugin.setCurrentParse(null);
         updater.getUpdater().cancel();
+        updater = null;
     }
 
 }

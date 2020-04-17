@@ -9,7 +9,8 @@
 
 package co.bywarp.mapagent.update;
 
-import org.bukkit.plugin.java.JavaPlugin;
+import co.bywarp.mapagent.MapAgent;
+
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -17,14 +18,19 @@ import lombok.Getter;
 
 public class Updater {
 
-    private JavaPlugin plugin;
+    private MapAgent plugin;
     @Getter private BukkitTask updater;
 
-    public Updater(JavaPlugin plugin) {
+    public Updater(MapAgent plugin) {
         this.plugin = plugin;
         this.updater = new BukkitRunnable() {
             @Override
             public void run() {
+                if (plugin.getCurrentParse() == null) {
+                    cancel();
+                    return;
+                }
+
                 for (int i = 0; i < 100; i++) {
                     plugin.getServer().getPluginManager().callEvent(new UpdateEvent());
                 }

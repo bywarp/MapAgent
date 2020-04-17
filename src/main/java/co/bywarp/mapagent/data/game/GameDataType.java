@@ -15,6 +15,8 @@ public enum GameDataType {
     FLOWER_POWER,
     DEATH_RUN,
     INFECTED,
+    SPLEEF,
+    ICE_BALL,
     BINGO;
 
     public static GameDataType match(String input) {

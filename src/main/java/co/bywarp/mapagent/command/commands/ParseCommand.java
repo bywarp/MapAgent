@@ -50,6 +50,7 @@ public class ParseCommand extends Command {
     public ParseCommand(MapAgent plugin, ExtruderPreferences preferences, MapDataRepository repository, GameDataManager manager) {
         super(Lang.generateHelpList("Parse", "Listing Commands:",
                 "/parse <radius> <maxY>",
+                "/parse <radius> <maxY> <minY>",
                 "/parse abort"), true);
         this.plugin = plugin;
         this.preferences = preferences;
@@ -83,7 +84,7 @@ public class ParseCommand extends Command {
             return CommandReturn.EXIT;
         }
 
-        if (args.length == 2) {
+        if (args.length == 2 || args.length == 3) {
             if (currentParse != null && currentParse.getState() != ParseState.DONE) {
                 client.sendMessage(Lang.generate("Parse", "&f" + plugin.getCurrentParse().getMapName() + " &7is currently being parsed."));
                 return CommandReturn.EXIT;
@@ -126,8 +127,24 @@ public class ParseCommand extends Command {
                 return CommandReturn.EXIT;
             }
 
-            MapParseOptions options = new MapParseOptions(getPlugin(), container.getName(), container.getAuthor(), container.getCenter(), radius, maxY);
-            Parser parser = new Parser(plugin, preferences, options, manager);
+            int minY = 0;
+            if (args.length == 3) {
+                if (!Comparables.isNumeric(args[2])) {
+                    client.sendMessage(Lang.generate("Parse", "Invalid Min-Y Value &f[" + args[2] + "]"));
+                    return CommandReturn.EXIT;
+                }
+
+                int minimumY = Integer.parseInt(args[2]);
+                if (minimumY > 256 || minimumY < 0) {
+                    client.sendMessage(Lang.generate("Parse", "Invalid Min-Y Coordinate &f[" + args[2] + "]"));
+                    return CommandReturn.EXIT;
+                }
+
+                minY = minimumY;
+            }
+
+            MapParseOptions options = new MapParseOptions(getPlugin(), container.getName(), container.getAuthor(), container.getCenter(), radius, maxY, minY);
+            Parser parser = new Parser(plugin, preferences, options, repository, manager);
             ConversationFactory conversationFactory = new ConversationFactory(plugin)
                     .withFirstPrompt(new ConfirmationPrompt(parser, plugin, container.getName()))
                     .withEscapeSequence("/no")
@@ -180,7 +197,7 @@ public class ParseCommand extends Command {
 
         @Override
         public String getPromptText(ConversationContext context) {
-            return Lang.generate("Parse", "Are you sure you want begin parsing &f" + mapName.split("_")[1] + "&7?") + "\n"
+            return Lang.generate("Parse", "Are you sure you want begin parsing &f" + ((Player) context.getForWhom()).getWorld().getName().split("_")[1] + "&7?") + "\n"
                     + Lang.colorMessage(" &7- &fThe visualizer will help you ensure your settings are correct.") + "\n"
                     + Lang.colorMessage(" &7- &fType &a(Y)ES &fto confirm, or &c(N)O &fto abort.");
         }
@@ -193,8 +210,8 @@ public class ParseCommand extends Command {
                 visualizer.cancel();
 
                 if (s.equalsIgnoreCase("yes") || s.equalsIgnoreCase("y")) {
-                    parser.start((Player) conversable);
                     plugin.setCurrentParse(parser);
+                    parser.start((Player) conversable);
                     return END_OF_CONVERSATION;
                 }
 

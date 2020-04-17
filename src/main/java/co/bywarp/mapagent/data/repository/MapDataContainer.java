@@ -11,6 +11,8 @@ package co.bywarp.mapagent.data.repository;
 
 import co.bywarp.mapagent.data.MapPoint;
 
+import java.util.Map;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -23,5 +25,6 @@ public class MapDataContainer {
     private String game;
     private String author;
     private MapPoint center;
+    private Map<String, Object> data;
 
 }
