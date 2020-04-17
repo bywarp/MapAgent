@@ -368,7 +368,8 @@ public class Parser implements Listener, Closable {
                 }
 
                 try {
-                    FileUtils.copyDirectory(world.getWorldFolder(), new File(masterRepo, gameData.getName()));
+                    File gameDir = new File(masterRepo, gameData.getName());
+                    FileUtils.copyDirectory(world.getWorldFolder(), new File(gameDir, mapName));
                     PlayerUtils.sendServerMessage(Lang.generate("Parse", "Deployed &f" + mapName + " &7to the map repository."));
                 } catch (IOException ex) {
                     PlayerUtils.sendServerMessage(Lang.generate("Parse", "An exception occurred while integrating this map."));
@@ -386,6 +387,8 @@ public class Parser implements Listener, Closable {
         if (state == ParseState.DONE) {
             PlayerUtils.sendServerMessage(Lang.generate("Parse", "Finished parsing &f" + mapName + " &7in &f" + TimeUtil.getShortenedTimeValue(System.currentTimeMillis() - start) + "&7."));
             close();
+            Bukkit.reload();
+            return;
         }
     }
 
