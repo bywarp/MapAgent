@@ -17,6 +17,7 @@ public enum GameDataType {
     INFECTED,
     SPLEEF,
     ICE_BALL,
+    SNOWFIGHT,
     BINGO;
 
     public static GameDataType match(String input) {

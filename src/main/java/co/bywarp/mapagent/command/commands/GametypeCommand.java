@@ -29,7 +29,7 @@ public class GametypeCommand extends Command {
     @Override
     public CommandReturn execute(Player client, String command, String[] args) {
         if (args.length != 1) {
-            return CommandReturn.EXIT;
+            return CommandReturn.HELP_MENU;
         }
 
         GameDataType gameType = GameDataType.match(args[0]);
