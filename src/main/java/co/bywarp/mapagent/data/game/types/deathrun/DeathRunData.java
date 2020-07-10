@@ -11,8 +11,8 @@ package co.bywarp.mapagent.data.game.types.deathrun;
 
 import co.bywarp.mapagent.data.game.GameData;
 import co.bywarp.mapagent.data.game.GameDataType;
+import co.bywarp.mapagent.data.game.team.presets.PlayersTeam;
 import co.bywarp.mapagent.data.game.types.deathrun.teams.DeathTeam;
-import co.bywarp.mapagent.data.game.types.deathrun.teams.PlayersTeam;
 import co.bywarp.mapagent.utils.DataUtils;
 
 public class DeathRunData extends GameData {

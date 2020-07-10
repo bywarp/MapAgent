@@ -17,8 +17,9 @@ import co.bywarp.mapagent.data.game.GameDataManager;
 import co.bywarp.mapagent.data.repository.MapDataContainer;
 import co.bywarp.mapagent.data.repository.MapDataRepository;
 import co.bywarp.mapagent.parcel.prefs.ExtruderPreferences;
+import co.bywarp.mapagent.parser.ChunkParser;
 import co.bywarp.mapagent.parser.ParseState;
-import co.bywarp.mapagent.parser.Parser;
+import co.bywarp.mapagent.utils.BorderUtil;
 import co.bywarp.mapagent.utils.text.Lang;
 
 import co.m1ke.basic.utils.Comparables;
@@ -64,7 +65,7 @@ public class ParseCommand extends Command {
             return CommandReturn.HELP_MENU;
         }
 
-        Parser currentParse = plugin.getCurrentParse();
+        ChunkParser currentParse = plugin.getCurrentParse();
         if (args.length == 1) {
             if (args[0].equalsIgnoreCase("abort")) {
                 if (currentParse == null) {
@@ -77,7 +78,7 @@ public class ParseCommand extends Command {
                     return CommandReturn.EXIT;
                 }
 
-                client.sendMessage(Lang.generate("Parse", "Sent abort signal to the parser engine."));
+                client.sendMessage(Lang.generate("Parse", "Sent abort signal to the parser."));
                 currentParse.abort();
                 return CommandReturn.EXIT;
             }
@@ -144,7 +145,7 @@ public class ParseCommand extends Command {
             }
 
             MapParseOptions options = new MapParseOptions(getPlugin(), container.getName(), container.getAuthor(), container.getCenter(), radius, maxY, minY);
-            Parser parser = new Parser(plugin, preferences, options, repository, manager);
+            ChunkParser parser = new ChunkParser(plugin, preferences, options, repository, manager);
             ConversationFactory conversationFactory = new ConversationFactory(plugin)
                     .withFirstPrompt(new ConfirmationPrompt(parser, plugin, container.getName()))
                     .withEscapeSequence("/no")
@@ -156,19 +157,18 @@ public class ParseCommand extends Command {
                 World world = client.getWorld();
 
                 Location center = container.getCenter().toLocation(world).clone();
-                Location corner1 = center.clone().add(radius, maxY - center.clone().getY(), radius);
-                Location corner2 = center.clone().subtract(radius, center.clone().getY(), radius);
+//                Location corner1 = center.clone().add(radius, maxY - center.clone().getY(), radius);
+//                Location corner2 = center.clone().subtract(radius, center.clone().getY(), radius);
 
-                double space = 0.5;
                 List<Location> list = new ArrayList<Location>() {
                     {
-                        addAll(createBorder(world, corner1, corner2, space));
+                        addAll(BorderUtil.createBorder(center, radius));
                     }
                 };
 
                 @Override
                 public void run() {
-                    list.forEach(loc -> world.playEffect(loc, Effect.COLOURED_DUST, 10));
+                    list.forEach(loc -> world.spigot().playEffect(loc, Effect.ENDER_SIGNAL));
                 }
 
             }.runTaskTimer(plugin, 0L, 20L);
@@ -185,11 +185,11 @@ public class ParseCommand extends Command {
 
     private static class ConfirmationPrompt extends StringPrompt {
 
-        private Parser parser;
+        private ChunkParser parser;
         private MapAgent plugin;
         private String mapName;
 
-        public ConfirmationPrompt(Parser parser, MapAgent plugin, String mapName) {
+        public ConfirmationPrompt(ChunkParser parser, MapAgent plugin, String mapName) {
             this.parser = parser;
             this.plugin = plugin;
             this.mapName = mapName;
@@ -228,34 +228,5 @@ public class ParseCommand extends Command {
         }
 
     }
-
-    public List<Location> createBorder(World world, Location corner1, Location corner2, double particleDistance) {
-        List<Location> result = new ArrayList<>();
-        double minX = Math.min(corner1.getX(), corner2.getX());
-        double minY = Math.min(corner1.getY(), corner2.getY());
-        double minZ = Math.min(corner1.getZ(), corner2.getZ());
-        double maxX = Math.max(corner1.getX(), corner2.getX());
-        double maxY = Math.max(corner1.getY(), corner2.getY());
-        double maxZ = Math.max(corner1.getZ(), corner2.getZ());
-
-        for (double x = minX; x <= maxX; x += particleDistance) {
-            for (double y = minY; y <= maxY; y += particleDistance) {
-                for (double z = minZ; z <= maxZ; z += particleDistance) {
-                    int components = 0;
-                    if (x == minX || x == maxX) components++;
-                    if (y == minY || y == maxY) components++;
-                    if (z == minZ || z == maxZ) components++;
-                    if (components >= 2) {
-                        result.add(new Location(world, x, y, z));
-                    }
-
-                }
-            }
-        }
-
-        return result;
-    }
-
-
 
 }

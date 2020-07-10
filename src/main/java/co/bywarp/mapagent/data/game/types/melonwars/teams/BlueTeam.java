@@ -7,20 +7,20 @@
  * in any capacity is unlawful and punishable by the full extent of the law.
  */
 
-package co.bywarp.mapagent.data.game.types.spleef.teams;
+package co.bywarp.mapagent.data.game.types.melonwars.teams;
 
-import co.bywarp.mapagent.data.TeamData;
+import co.bywarp.mapagent.data.game.team.TeamData;
 
 import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
 
-public class PlayersTeam extends TeamData {
+public class BlueTeam extends TeamData {
 
-    public PlayersTeam() {
+    public BlueTeam() {
         super(
-                "Players",
-                ChatColor.GREEN,
-                DyeColor.LIME.getWoolData()
+                "Blue",
+                ChatColor.BLUE,
+                DyeColor.BLUE.getWoolData()
         );
     }
 

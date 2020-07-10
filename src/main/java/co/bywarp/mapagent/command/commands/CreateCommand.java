@@ -41,7 +41,7 @@ public class CreateCommand extends Command {
 
         GameDataType type = GameDataType.match(args[1]);
         if (type == null) {
-            client.sendMessage(Lang.generate("Parse", "Invalid Gametype &f[" + args[0] + "]"));
+            client.sendMessage(Lang.generate("Parse", "Invalid Gametype &f[" + args[1] + "]"));
             return CommandReturn.EXIT;
         }
 

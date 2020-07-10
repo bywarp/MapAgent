@@ -7,23 +7,21 @@
  * in any capacity is unlawful and punishable by the full extent of the law.
  */
 
-package co.bywarp.mapagent.data.game;
+package co.bywarp.mapagent.data.game.numbered;
 
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
+import co.bywarp.mapagent.data.game.GameDataBlock;
+
+import org.bukkit.Location;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 
-@Data
+@Getter
 @AllArgsConstructor
-public abstract class GameDataBlock {
+public class NumberedDataBlock {
 
-    private String name;
-    private String internalName;
-    private Material material;
-    private byte data;
-    private ChatColor color;
-    private boolean numbered;
+    private int number;
+    private Location location;
+    private GameDataBlock dataBlock;
 
 }

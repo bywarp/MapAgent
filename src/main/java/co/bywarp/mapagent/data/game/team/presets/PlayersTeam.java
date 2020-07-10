@@ -7,9 +7,9 @@
  * in any capacity is unlawful and punishable by the full extent of the law.
  */
 
-package co.bywarp.mapagent.data.game.types.cannons.teams;
+package co.bywarp.mapagent.data.game.team.presets;
 
-import co.bywarp.mapagent.data.TeamData;
+import co.bywarp.mapagent.data.game.team.TeamData;
 
 import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;

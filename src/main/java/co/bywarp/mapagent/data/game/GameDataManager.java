@@ -34,9 +34,15 @@ public class GameDataManager {
     }
 
     public GameData getAgentForType(String unsafe) {
+        String realUnsafe = unsafe.replaceAll("_", "");
         return registeredGames
                 .stream()
-                .filter(game -> game.getType().name().equalsIgnoreCase(unsafe))
+                .filter(game -> {
+                    String gameName = game.getName()
+                            .replaceAll("_", "")
+                            .replaceAll(" ", "");
+                    return gameName.equalsIgnoreCase(realUnsafe);
+                })
                 .findFirst()
                 .orElse(null);
     }

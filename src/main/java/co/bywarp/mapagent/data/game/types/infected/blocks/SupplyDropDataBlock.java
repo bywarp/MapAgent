@@ -22,7 +22,8 @@ public class SupplyDropDataBlock extends GameDataBlock {
                 "supplyDrop",
                 Material.ENDER_CHEST,
                 (byte) 0,
-                ChatColor.LIGHT_PURPLE
+                ChatColor.LIGHT_PURPLE,
+                false
         );
     }
 

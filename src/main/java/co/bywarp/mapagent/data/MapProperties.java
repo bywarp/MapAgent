@@ -9,6 +9,8 @@
 
 package co.bywarp.mapagent.data;
 
+import co.bywarp.mapagent.data.game.team.TeamData;
+
 import org.json.JSONObject;
 
 import java.util.HashMap;

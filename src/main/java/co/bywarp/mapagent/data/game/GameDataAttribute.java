@@ -7,17 +7,16 @@
  * in any capacity is unlawful and punishable by the full extent of the law.
  */
 
-package co.bywarp.mapagent.data.game.types.infected.teams;
+package co.bywarp.mapagent.data.game;
 
-import co.bywarp.mapagent.data.game.team.TeamData;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-import org.bukkit.ChatColor;
-import org.bukkit.DyeColor;
+@Getter
+@AllArgsConstructor
+public class GameDataAttribute<T> {
 
-public class UndeadTeam extends TeamData {
-
-    public UndeadTeam() {
-        super("Undead", ChatColor.RED, DyeColor.RED.getWoolData());
-    }
+    private String name;
+    private T value;
 
 }

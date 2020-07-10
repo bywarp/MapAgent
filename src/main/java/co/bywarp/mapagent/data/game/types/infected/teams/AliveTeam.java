@@ -9,7 +9,7 @@
 
 package co.bywarp.mapagent.data.game.types.infected.teams;
 
-import co.bywarp.mapagent.data.TeamData;
+import co.bywarp.mapagent.data.game.team.TeamData;
 
 import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;

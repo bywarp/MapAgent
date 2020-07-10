@@ -20,13 +20,19 @@ import co.bywarp.mapagent.command.commands.MapInfoCommand;
 import co.bywarp.mapagent.command.commands.ParseCommand;
 import co.bywarp.mapagent.data.game.GameDataManager;
 import co.bywarp.mapagent.data.game.types.cannons.CannonsData;
+import co.bywarp.mapagent.data.game.types.deathmatch.DeathmatchData;
 import co.bywarp.mapagent.data.game.types.deathrun.DeathRunData;
+import co.bywarp.mapagent.data.game.types.dragonrun.DragonRunData;
+import co.bywarp.mapagent.data.game.types.egghunt.EggHuntData;
+import co.bywarp.mapagent.data.game.types.iceball.IceBallData;
 import co.bywarp.mapagent.data.game.types.infected.InfectedData;
+import co.bywarp.mapagent.data.game.types.melonwars.MelonWarsData;
 import co.bywarp.mapagent.data.game.types.snowfight.SnowFightData;
 import co.bywarp.mapagent.data.game.types.spleef.SpleefData;
+import co.bywarp.mapagent.data.game.types.teamdeathmatch.TeamDeathmatchData;
 import co.bywarp.mapagent.data.repository.MapDataRepository;
 import co.bywarp.mapagent.parcel.JsonParcel;
-import co.bywarp.mapagent.parser.Parser;
+import co.bywarp.mapagent.parser.ChunkParser;
 import co.bywarp.mapagent.update.UpdateEvent;
 import co.bywarp.mapagent.utils.PlayerUtils;
 import co.bywarp.mapagent.utils.text.Lang;
@@ -49,7 +55,7 @@ public class MapAgent extends JavaPlugin implements Listener {
     private MapDataRepository repository;
     private GameDataManager manager;
 
-    @Setter private Parser currentParse;
+    @Setter private ChunkParser currentParse;
 
     @Override
     public void onEnable() {
@@ -59,10 +65,16 @@ public class MapAgent extends JavaPlugin implements Listener {
         this.manager = new GameDataManager(this,
                 null,
                 new CannonsData(),
+                new DeathmatchData(),
                 new DeathRunData(),
+                new DragonRunData(),
+                new EggHuntData(),
+                new IceBallData(),
                 new InfectedData(),
+                new MelonWarsData(),
+                new SnowFightData(),
                 new SpleefData(),
-                new SnowFightData());
+                new TeamDeathmatchData());
 
         this.registerCommands();
 

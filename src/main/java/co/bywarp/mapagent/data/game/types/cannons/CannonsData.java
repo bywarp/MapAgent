@@ -11,8 +11,8 @@ package co.bywarp.mapagent.data.game.types.cannons;
 
 import co.bywarp.mapagent.data.game.GameData;
 import co.bywarp.mapagent.data.game.GameDataType;
+import co.bywarp.mapagent.data.game.team.presets.PlayersTeam;
 import co.bywarp.mapagent.data.game.types.cannons.blocks.CannonDataBlock;
-import co.bywarp.mapagent.data.game.types.cannons.teams.PlayersTeam;
 import co.bywarp.mapagent.utils.DataUtils;
 
 public class CannonsData extends GameData {

@@ -7,7 +7,7 @@
  * in any capacity is unlawful and punishable by the full extent of the law.
  */
 
-package co.bywarp.mapagent.data;
+package co.bywarp.mapagent.data.game.team;
 
 import co.bywarp.mapagent.data.game.GameDataBlock;
 
@@ -32,7 +32,8 @@ public class TeamData extends GameDataBlock {
                         .replaceAll("-", "_"),
                 Material.WOOL,
                 woolColor,
-                color);
+                color,
+                false);
         this.name = name;
         this.color = color;
         this.woolColor = woolColor;

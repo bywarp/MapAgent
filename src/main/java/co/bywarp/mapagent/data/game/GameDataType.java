@@ -11,14 +11,19 @@ package co.bywarp.mapagent.data.game;
 
 public enum GameDataType {
 
+    BINGO,
     CANNONS,
-    FLOWER_POWER,
+    DEATHMATCH,
     DEATH_RUN,
-    INFECTED,
-    SPLEEF,
+    DRAGON_RUN,
+    EGG_HUNT,
     ICE_BALL,
+    INFECTED,
+    MELON_WARS,
+    OITQ,
     SNOWFIGHT,
-    BINGO;
+    SPLEEF,
+    TEAM_DEATHMATCH;
 
     public static GameDataType match(String input) {
         for (GameDataType type : values()) {

@@ -7,18 +7,18 @@
  * in any capacity is unlawful and punishable by the full extent of the law.
  */
 
-package co.bywarp.mapagent.data.game.types.spleef;
+package co.bywarp.mapagent.data.game.types.deathmatch;
 
 import co.bywarp.mapagent.data.game.GameData;
 import co.bywarp.mapagent.data.game.GameDataType;
 import co.bywarp.mapagent.data.game.team.presets.PlayersTeam;
 import co.bywarp.mapagent.utils.DataUtils;
 
-public class SpleefData extends GameData {
+public class DeathmatchData extends GameData {
 
-    public SpleefData() {
-        super("Spleef",
-                GameDataType.SPLEEF,
+    public DeathmatchData() {
+        super("Deathmatch",
+                GameDataType.DEATHMATCH,
                 DataUtils.inlineList(
                         new PlayersTeam()
                 )

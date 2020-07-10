@@ -23,7 +23,8 @@ public class PowerCrystalDataBlock extends GameDataBlock {
                 "powerCrystal",
                 Material.WOOL,
                 DyeColor.LIGHT_BLUE.getWoolData(),
-                ChatColor.AQUA
+                ChatColor.AQUA,
+                false
         );
     }
 

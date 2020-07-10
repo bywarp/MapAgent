@@ -23,7 +23,8 @@ public class CannonDataBlock extends GameDataBlock {
                 "cannon",
                 Material.WOOL,
                 DyeColor.LIGHT_BLUE.getWoolData(),
-                ChatColor.AQUA
+                ChatColor.AQUA,
+                false
         );
     }
 

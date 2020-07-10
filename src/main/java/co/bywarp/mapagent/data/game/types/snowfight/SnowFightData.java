@@ -11,8 +11,8 @@ package co.bywarp.mapagent.data.game.types.snowfight;
 
 import co.bywarp.mapagent.data.game.GameData;
 import co.bywarp.mapagent.data.game.GameDataType;
+import co.bywarp.mapagent.data.game.team.presets.PlayersTeam;
 import co.bywarp.mapagent.data.game.types.snowfight.blocks.PowerCrystalDataBlock;
-import co.bywarp.mapagent.data.game.types.snowfight.teams.PlayersTeam;
 import co.bywarp.mapagent.utils.DataUtils;
 
 public class SnowFightData extends GameData {

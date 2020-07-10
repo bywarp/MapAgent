@@ -7,23 +7,24 @@
  * in any capacity is unlawful and punishable by the full extent of the law.
  */
 
-package co.bywarp.mapagent.data.game.marker;
+package co.bywarp.mapagent.data.game.types.dragonrun.blocks;
 
 import co.bywarp.mapagent.data.game.GameDataBlock;
 
 import org.bukkit.ChatColor;
+import org.bukkit.DyeColor;
 import org.bukkit.Material;
 
-public class CornerMarker extends GameDataBlock {
+public class DragonWaypointBlock extends GameDataBlock {
 
-    public CornerMarker() {
+    public DragonWaypointBlock() {
         super(
-                "Corner",
-                "corner",
-                Material.SEA_LANTERN,
-                (byte) 0,
-                ChatColor.AQUA,
-                false
+                "Dragon Waypoint",
+                "dragon",
+                Material.WOOL,
+                DyeColor.MAGENTA.getWoolData(),
+                ChatColor.LIGHT_PURPLE,
+                true
         );
     }
 

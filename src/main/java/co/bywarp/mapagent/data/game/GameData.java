@@ -9,8 +9,8 @@
 
 package co.bywarp.mapagent.data.game;
 
-import co.bywarp.mapagent.data.TeamData;
 import co.bywarp.mapagent.data.game.marker.CornerMarker;
+import co.bywarp.mapagent.data.game.team.TeamData;
 
 import java.util.ArrayList;
 import java.util.stream.Stream;
@@ -23,11 +23,13 @@ public abstract class GameData {
     private String name;
     private GameDataType type;
     private ArrayList<TeamData> teams;
+//    private ArrayList<GameDataAttribute<?>> attributes;
     private ArrayList<GameDataBlock> dataBlocks;
 
-    public GameData(String name, GameDataType type, ArrayList<TeamData> teams, GameDataBlock... dataBlock) {
+    public GameData(String name, GameDataType type, ArrayList<TeamData> teams, /*ArrayList<GameDataAttribute<?>> attributes,*/ GameDataBlock... dataBlock) {
         this.name = name;
         this.type = type;
+//        this.attributes = attributes;
         this.teams = teams;
         this.dataBlocks = new ArrayList<>();
 
