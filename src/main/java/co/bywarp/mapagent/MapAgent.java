@@ -29,6 +29,7 @@ import co.bywarp.mapagent.data.game.types.infected.InfectedData;
 import co.bywarp.mapagent.data.game.types.melonwars.MelonWarsData;
 import co.bywarp.mapagent.data.game.types.snowfight.SnowFightData;
 import co.bywarp.mapagent.data.game.types.spleef.SpleefData;
+import co.bywarp.mapagent.data.game.types.sumo.SumoData;
 import co.bywarp.mapagent.data.game.types.teamdeathmatch.TeamDeathmatchData;
 import co.bywarp.mapagent.data.repository.MapDataRepository;
 import co.bywarp.mapagent.parcel.JsonParcel;
@@ -74,6 +75,7 @@ public class MapAgent extends JavaPlugin implements Listener {
                 new MelonWarsData(),
                 new SnowFightData(),
                 new SpleefData(),
+                new SumoData(),
                 new TeamDeathmatchData());
 
         this.registerCommands();

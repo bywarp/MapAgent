@@ -23,6 +23,7 @@ public enum GameDataType {
     OITQ,
     SNOWFIGHT,
     SPLEEF,
+    SUMO,
     TEAM_DEATHMATCH;
 
     public static GameDataType match(String input) {
