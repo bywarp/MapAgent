@@ -9,6 +9,7 @@
 
 package co.bywarp.mapagent.command.commands;
 
+import co.bywarp.lightkit.util.Ensure;
 import co.bywarp.mapagent.MapAgent;
 import co.bywarp.mapagent.command.Command;
 import co.bywarp.mapagent.command.CommandReturn;
@@ -21,8 +22,6 @@ import co.bywarp.mapagent.parser.ChunkParser;
 import co.bywarp.mapagent.parser.ParseState;
 import co.bywarp.mapagent.utils.BorderUtil;
 import co.bywarp.mapagent.utils.text.Lang;
-
-import co.m1ke.basic.utils.Comparables;
 
 import org.bukkit.Effect;
 import org.bukkit.Location;
@@ -50,9 +49,9 @@ public class ParseCommand extends Command {
 
     public ParseCommand(MapAgent plugin, ExtruderPreferences preferences, MapDataRepository repository, GameDataManager manager) {
         super(Lang.generateHelpList("Parse", "Listing Commands:",
-                "/parse <radius> <maxY>",
-                "/parse <radius> <maxY> <minY>",
-                "/parse abort"), true);
+                "/parse <radius>",
+                "/parse abort"),
+                true);
         this.plugin = plugin;
         this.preferences = preferences;
         this.repository = repository;
@@ -82,10 +81,7 @@ public class ParseCommand extends Command {
                 currentParse.abort();
                 return CommandReturn.EXIT;
             }
-            return CommandReturn.EXIT;
-        }
 
-        if (args.length == 2 || args.length == 3) {
             if (currentParse != null && currentParse.getState() != ParseState.DONE) {
                 client.sendMessage(Lang.generate("Parse", "&f" + plugin.getCurrentParse().getMapName() + " &7is currently being parsed."));
                 return CommandReturn.EXIT;
@@ -111,40 +107,15 @@ public class ParseCommand extends Command {
                 return CommandReturn.EXIT;
             }
 
-            if (!Comparables.isNumeric(args[0])) {
+            if (!Ensure.isNumeric(args[0])) {
                 client.sendMessage(Lang.generate("Parse", "Invalid Radius &f[" + args[0] + "]"));
                 return CommandReturn.EXIT;
             }
 
-            if (!Comparables.isNumeric(args[1])) {
-                client.sendMessage(Lang.generate("Parse", "Invalid Max-Y Value &f[" + args[1] + "]"));
-                return CommandReturn.EXIT;
-            }
 
             int radius = Integer.parseInt(args[0]);
-            int maxY = Integer.parseInt(args[1]);
-            if (maxY > 256 || maxY < 0) {
-                client.sendMessage(Lang.generate("Parse", "Invalid Max-Y Coordinate &f[" + args[1] + "]"));
-                return CommandReturn.EXIT;
-            }
 
-            int minY = 0;
-            if (args.length == 3) {
-                if (!Comparables.isNumeric(args[2])) {
-                    client.sendMessage(Lang.generate("Parse", "Invalid Min-Y Value &f[" + args[2] + "]"));
-                    return CommandReturn.EXIT;
-                }
-
-                int minimumY = Integer.parseInt(args[2]);
-                if (minimumY > 256 || minimumY < 0) {
-                    client.sendMessage(Lang.generate("Parse", "Invalid Min-Y Coordinate &f[" + args[2] + "]"));
-                    return CommandReturn.EXIT;
-                }
-
-                minY = minimumY;
-            }
-
-            MapParseOptions options = new MapParseOptions(getPlugin(), container.getName(), container.getAuthor(), container.getCenter(), radius, maxY, minY);
+            MapParseOptions options = new MapParseOptions(getPlugin(), container.getName(), container.getAuthor(), container.getCenter(), radius);
             ChunkParser parser = new ChunkParser(plugin, preferences, options, repository, manager);
             ConversationFactory conversationFactory = new ConversationFactory(plugin)
                     .withFirstPrompt(new ConfirmationPrompt(parser, plugin, container.getName()))
@@ -154,13 +125,9 @@ public class ParseCommand extends Command {
 
             BukkitTask task = new BukkitRunnable() {
 
-                World world = client.getWorld();
-
-                Location center = container.getCenter().toLocation(world).clone();
-//                Location corner1 = center.clone().add(radius, maxY - center.clone().getY(), radius);
-//                Location corner2 = center.clone().subtract(radius, center.clone().getY(), radius);
-
-                List<Location> list = new ArrayList<Location>() {
+                final World world = client.getWorld();
+                final Location center = container.getCenter().toLocation(world).clone();
+                final List<Location> list = new ArrayList<Location>() {
                     {
                         addAll(BorderUtil.createBorder(center, radius));
                     }
@@ -168,7 +135,7 @@ public class ParseCommand extends Command {
 
                 @Override
                 public void run() {
-                    list.forEach(loc -> world.spigot().playEffect(loc, Effect.ENDER_SIGNAL));
+                    list.forEach(loc -> world.spigot().playEffect(loc, Effect.POTION_SWIRL_TRANSPARENT));
                 }
 
             }.runTaskTimer(plugin, 0L, 20L);
@@ -178,8 +145,10 @@ public class ParseCommand extends Command {
             conversation.getContext().setSessionData("visualizer", task);
 
             conversable.beginConversation(conversation);
+
             return CommandReturn.EXIT;
         }
+
         return CommandReturn.HELP_MENU;
     }
 

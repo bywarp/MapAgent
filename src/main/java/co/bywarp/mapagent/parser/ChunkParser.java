@@ -9,6 +9,9 @@
 
 package co.bywarp.mapagent.parser;
 
+import co.bywarp.lightkit.util.Closable;
+import co.bywarp.lightkit.util.Ensure;
+import co.bywarp.lightkit.util.TimeUtils;
 import co.bywarp.mapagent.MapAgent;
 import co.bywarp.mapagent.data.MapParseOptions;
 import co.bywarp.mapagent.data.MapPoint;
@@ -29,20 +32,17 @@ import co.bywarp.mapagent.utils.DataUtils;
 import co.bywarp.mapagent.utils.PlayerUtils;
 import co.bywarp.mapagent.utils.text.Lang;
 
-import co.m1ke.basic.utils.Closable;
-import co.m1ke.basic.utils.Comparables;
-import co.m1ke.basic.utils.MathUtils;
-import co.m1ke.basic.utils.TimeUtil;
-
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.WorldCreator;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
+import org.bukkit.craftbukkit.v1_8_R3.CraftWorld;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -54,6 +54,8 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -66,7 +68,9 @@ import java.util.Locale;
 import java.util.Map;
 
 import lombok.Getter;
+import net.minecraft.server.v1_8_R3.WorldServer;
 
+@SuppressWarnings("ConfusingArgumentToVarargsMethod")
 @Getter
 public class ChunkParser implements Listener, Closable {
 
@@ -84,8 +88,6 @@ public class ChunkParser implements Listener, Closable {
     private String mapAuthor;
     private MapPoint center;
 
-    private int maxY;
-    private int minY;
     private int radius;
     private int processed;
     private long start;
@@ -128,8 +130,6 @@ public class ChunkParser implements Listener, Closable {
         this.mapAuthor = parseOptions.getAuthor();
         this.center = parseOptions.getCenter();
 
-        this.maxY = parseOptions.getMaxY();
-        this.minY = parseOptions.getMinY();
         this.radius = parseOptions.getRadius();
         this.processed = 0;
         this.start = System.currentTimeMillis();
@@ -201,12 +201,12 @@ public class ChunkParser implements Listener, Closable {
             processed++;
 
             if (processed >= chunks.size()) {
-                PlayerUtils.sendServerMessage(Lang.generate("Parse", "Scanned &f" + chunks.size() + " chunk" + TimeUtil.numberEnding(chunks.size()) + " &7in &f" + TimeUtil.getShortenedTimeValue(System.currentTimeMillis() - start) + "."));
+                PlayerUtils.sendServerMessage(Lang.generate("Parse", "Scanned &f" + chunks.size() + " chunk" + TimeUtils.numberEnding(chunks.size()) + " &7in &f" + TimeUtils.getShortenedTimeValue(System.currentTimeMillis() - start) + "."));
                 state = ParseState.PROCESSING;
                 return;
             }
 
-            double percentDone = MathUtils.percent(chunks.size(), processed);
+            double percentDone = percent(chunks.size(), processed);
             percentDone = Math.abs(100 - percentDone);
 
             PlayerUtils.sendActionBar(Lang.colorMessage("&2&lMap Parse &8▬ &f" + processed + "/" + chunks.size() + " &7processed &e(" + df.format(percentDone) + "%)"));
@@ -259,7 +259,7 @@ public class ChunkParser implements Listener, Closable {
 
                 Sign sign = (Sign) block.getState();
                 String text = sign.getLine(0);
-                if (!text.isEmpty() && Comparables.isNumeric(text)) {
+                if (!text.isEmpty() && Ensure.isNumeric(text)) {
                     NumberedDataBlock numberedData = new NumberedDataBlock(Integer.parseInt(text), dataMarkerCenter, dataBlock);
                     DataUtils.getAndInsert(numberedCustomLocations, dataBlock.getInternalName(), numberedData);
                     sign.setLine(0, "Scanned - Position #" + text);
@@ -318,16 +318,16 @@ public class ChunkParser implements Listener, Closable {
             }
 
             // Create preference parcel data
-            parcel.put("name", mapName);
-            parcel.put("author", mapAuthor);
-            parcel.put("description", "");
-            parcel.put("center", new JSONObject()
-                    .put("x", center.getX())
-                    .put("y", center.getY())
-                    .put("z", center.getZ()));
-            parcel.put("spawns", teamSpawns);
-            parcel.put("custom", customLocs);
-            parcel.put("data", new JSONObject(container.getData()));
+            parcel.put("name", mapName)
+                    .put("author", mapAuthor)
+                    .put("description", "")
+                    .put("center", new JSONObject()
+                            .put("x", center.getX())
+                            .put("y", center.getY())
+                            .put("z", center.getZ()))
+                    .put("spawns", teamSpawns)
+                    .put("custom", customLocs)
+                    .put("data", new JSONObject(container.getData()));
 
             // Attempt to write parcel data to map parcel file
             try {
@@ -347,26 +347,23 @@ public class ChunkParser implements Listener, Closable {
 
             // If we want to extrude to master, try to copy to master
             if (preferences.isExtrudeToMaster()) {
-                File masterRepo = preferences.getMapRepository();
-                if (!masterRepo.exists()) {
-                    PlayerUtils.sendServerMessage(Lang.generate("Parse", "&cWarning: &7Master map repository does not exist."));
-                    PlayerUtils.sendServerMessage(Lang.colorMessage(" &7- &fThe preference parcel has been successfully exported, but we couldn't ship it off to the repository."));
-                    PlayerUtils.sendServerMessage(Lang.colorMessage(" &7- &fManual action is required to deploy this map."));
+                PlayerUtils.sendServerMessage(Lang.generate("Parse", "Preparing to export &f" + world.getName() + "&7."));
+                PlayerUtils.sendActionBar(Lang.colorMessage("&2&lMap Parse &8&l⏐ &a|&f|||||||| &8&l⏐ &fPreparing.."));
+                world.setGameRuleValue("commandBlockOutput", "false");
+                world.setGameRuleValue("keepInventory", "false");
+                world.setGameRuleValue("mobGriefing", "false");
+                world.setGameRuleValue("doWeatherCycle", "false");
+                world.setGameRuleValue("doDaylightCycle", "false");
+                world.setGameRuleValue("doMobSpawning", "false");
+                PlayerUtils.sendActionBar(Lang.colorMessage("&2&lMap Parse &8&l⏐ &a||&f||||||| &8&l⏐ &fGamerules updated"));
 
-                    state = ParseState.DONE;
-                    canAbort = false;
-                    dataBlockCache.clear();
-                    return;
-                }
+                world.setTime(6000L);
+                PlayerUtils.sendActionBar(Lang.colorMessage("&2&lMap Parse &8&l⏐ &a|||&f|||||| &8&l⏐ &fTime locked"));
 
                 try {
-                    world.setGameRuleValue("commandBlockOutput", "false");
-                    world.setGameRuleValue("doWeatherCycle", "false");
-                    world.setGameRuleValue("keepInventory", "false");
-                    world.setGameRuleValue("mobGriefing", "false");
-                    world.setGameRuleValue("doDaylightCycle", "false");
-                    world.setGameRuleValue("doMobSpawning", "false");
-                    world.setTime(6000L);
+                    // Get rid of players & save
+                    PlayerUtils.sendActionBar(Lang.colorMessage("&2&lMap Parse &8&l⏐ &a||||&f||||| &8&l⏐ &fEmptying world.."));
+                    world.getPlayers().forEach(player -> player.teleport(plugin.getGlobalSpawn()));
                     world.getEntities().forEach(entity -> {
                         if (!(entity instanceof LivingEntity)) {
                             return;
@@ -377,33 +374,111 @@ public class ChunkParser implements Listener, Closable {
                         }
 
                         LivingEntity ent = (LivingEntity) entity;
+                        if (ent instanceof Player) {
+                            return;
+                        }
+
                         ent.setHealth(0);
                         ent.remove();
                     });
 
-                    world.save();
+                    try {
+                        WorldServer nmsWorld = ((CraftWorld) world).getHandle();
+                        Method saveLevel = nmsWorld
+                                .getClass()
+                                .getDeclaredMethod("a", null);
+                        saveLevel.setAccessible(true);
+                        saveLevel.invoke(nmsWorld, null);
+                        PlayerUtils.sendServerMessage(Lang.generate("Parse", "WorldServer at &f" + nmsWorld.toString().split("@")[1] + " &7force-saved."));
+                    } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                        PlayerUtils.sendServerMessage(Lang.generate("Parse", "Failed to invoke WorldServer save."));
+                        PlayerUtils.sendServerMessage(Lang.generate("Parse", "&c" + e.getMessage() + " &f(" + e.getClass().getSimpleName() + ")"));
+                        PlayerUtils.sendServerMessage(Lang.generate("Parse", "Attempting to force-save using CraftWorld.."));
+
+                        CraftWorld craftWorld = (CraftWorld) world;
+                        craftWorld.save(true);
+                        PlayerUtils.sendServerMessage(Lang.generate("Parse", "Fingers crossed, force saved using CraftWorld (but this is Bukkit so what exactly can we expect?)"));
+                    }
+
+                    Thread.sleep(1500);
+                    PlayerUtils.sendServerMessage("&f&oNatural sleep (1.5 seconds) &b&ozZzZzZzZzZzZz");
+                    PlayerUtils.sendActionBar(Lang.colorMessage("&2&lMap Parse &8&l⏐ &a|||||&f||| &8&l⏐ &fEmptied.."));
+
+                    // Wait a sec for all players to be gone, then remove
+                    boolean unloaded = Bukkit.unloadWorld(world, true);
+
+                    if (!unloaded) {
+                        PlayerUtils.sendServerMessage(Lang.generate("Parse", "&cWarning: &7Failed to unload world."));
+                        this.abort();
+                        return;
+                    }
+
+                    // Clean world directory
+                    FileUtils.deleteDirectory(new File(world.getWorldFolder(), "playerdata"));
+                    FileUtils.deleteDirectory(new File(world.getWorldFolder(), "stats"));
+
+                    if (new File(world.getWorldFolder(), "uid.lock").exists()) {
+                        FileUtils.forceDelete(new File(world.getWorldFolder(), "uid.dat"));
+                        PlayerUtils.sendActionBar(Lang.colorMessage("&2&lMap Parse &8&l⏐ &a||||||&f|| &8&l⏐ &fDeleted &euid.dat"));
+                    }
+
+                    if (new File(world.getWorldFolder(), "session.lock").exists()) {
+                        FileUtils.forceDelete(new File(world.getWorldFolder(), "session.lock"));
+                        PlayerUtils.sendActionBar(Lang.colorMessage("&2&lMap Parse &8&l⏐ &a||||||&f|| &8&l⏐ &fDeleted &esession.lock"));
+                    }
+
+                    PlayerUtils.sendActionBar(Lang.colorMessage("&2&lMap Parse &8&l⏐ &a||||||&f|| &8&l⏐ &fCleaned world directory"));
+
+                    File masterRepo = preferences.getMapRepository();
+                    if (!masterRepo.exists()) {
+                        PlayerUtils.sendServerMessage(Lang.generate("Parse", "&cWarning: &7Master map repository does not exist."));
+                        PlayerUtils.sendServerMessage(Lang.colorMessage(" &7- &fThe preference parcel has been successfully exported, but we couldn't ship it off to the repository."));
+                        PlayerUtils.sendServerMessage(Lang.colorMessage(" &7- &fManual action is required to deploy this map."));
+
+                        state = ParseState.DONE;
+                        canAbort = false;
+                        dataBlockCache.clear();
+                        return;
+                    }
 
                     File gameDir = new File(masterRepo, gameData.getName());
-                    FileUtils.deleteDirectory(new File(gameDir, mapName)); // delete if already exists
+
+                    // Delete old version
+                    if (new File(gameDir, mapName).exists()) {
+                        PlayerUtils.sendActionBar(Lang.colorMessage("&2&lMap Parse &8&l⏐ &a|||||||&f| &8&l⏐ &fCleaning outdated copy at destination"));
+                        PlayerUtils.sendActionBar(Lang.generate("Parse", "Found an old copy of &e" + mapName + " &fat &f" + gameData.getName() + "/" + mapName + "&7."));
+                        PlayerUtils.sendActionBar(Lang.generate("Parse", "This old version will be deleted."));
+                        FileUtils.deleteDirectory(new File(gameDir, mapName));
+                    }
+
+                    PlayerUtils.sendActionBar(Lang.colorMessage("&2&lMap Parse &8&l⏐ &a|||||||&f| &8&l⏐ &fDeploying.."));
                     FileUtils.copyDirectory(world.getWorldFolder(), new File(gameDir, mapName));
+                    PlayerUtils.sendActionBar(Lang.colorMessage("&2&lMap Parse &8&l⏐ &a|||||||&f| &8&l⏐ &fCleaning up.."));
+
+                    Bukkit.createWorld(new WorldCreator(world.getName()));
+
                     PlayerUtils.sendServerMessage(Lang.generate("Parse", "Deployed &f" + mapName + " &7to the map repository."));
+                    PlayerUtils.sendActionBar(Lang.colorMessage("&2&lMap Parse &8&l⏐ &a|||||||| &8&l⏐ &fFinished deployment"));
+
+                    // Finalize
+                    state = ParseState.DONE;
+                    canAbort = false;
+                    dataBlockCache.clear();
                 } catch (IOException ex) {
                     PlayerUtils.sendServerMessage(Lang.generate("Parse", "An exception occurred while deploying this map."));
                     PlayerUtils.sendServerMessage(Lang.generate("Parse", "&c" + ex.getMessage() + " (" + ex.getClass().getSimpleName() + ")"));
+                    this.abort();
+                } catch (InterruptedException ex) {
+                    PlayerUtils.sendServerMessage(Lang.generate("Parse", "Error obtaining sync-lock on main thread."));
+                    ex.printStackTrace();
                 }
             }
-
-            // Finalize
-            state = ParseState.DONE;
-            canAbort = false;
-            dataBlockCache.clear();
             return;
         }
 
         if (state == ParseState.DONE) {
-            PlayerUtils.sendServerMessage(Lang.generate("Parse", "Finished parsing &f" + mapName + " &7in &f" + TimeUtil.getShortenedTimeValue(System.currentTimeMillis() - start) + "&7."));
-            close();
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "reload");
+            PlayerUtils.sendServerMessage(Lang.generate("Parse", "Finished parsing &f" + mapName + " &7in &f" + TimeUtils.getShortenedTimeValue(System.currentTimeMillis() - start) + "&7."));
+            this.close();
             return;
         }
     }
@@ -421,11 +496,16 @@ public class ChunkParser implements Listener, Closable {
         }
     }
 
+    private double percent(double i1, double i2) {
+        return (((i1 - i2) * 1.0) / i1) * 100;
+    }
+
     @Override
     public void close() {
-        updater.getUpdater().cancel();
-        updater = null;
         plugin.setCurrentParse(null);
+        updater.close();
+        updater = null;
+
         HandlerList.unregisterAll(this);
     }
 

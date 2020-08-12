@@ -9,9 +9,8 @@
 
 package co.bywarp.mapagent.command;
 
+import co.bywarp.lightkit.util.logger.Logger;
 import co.bywarp.mapagent.MapAgent;
-
-import co.m1ke.basic.logger.Logger;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;

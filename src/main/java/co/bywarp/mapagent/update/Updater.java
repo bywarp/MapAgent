@@ -9,6 +9,7 @@
 
 package co.bywarp.mapagent.update;
 
+import co.bywarp.lightkit.util.Closable;
 import co.bywarp.mapagent.MapAgent;
 
 import org.bukkit.scheduler.BukkitRunnable;
@@ -16,7 +17,7 @@ import org.bukkit.scheduler.BukkitTask;
 
 import lombok.Getter;
 
-public class Updater {
+public class Updater implements Closable {
 
     private MapAgent plugin;
     @Getter private BukkitTask updater;
@@ -27,15 +28,25 @@ public class Updater {
             @Override
             public void run() {
                 if (plugin.getCurrentParse() == null) {
-                    cancel();
+                    close();
                     return;
                 }
 
-                for (int i = 0; i < 100; i++) {
-                    plugin.getServer().getPluginManager().callEvent(new UpdateEvent());
-                }
+//                for (int i = 0; i < 15; i++) {
+//                    if (plugin.getCurrentParse() == null) {
+//                        close();
+//                        break;
+//                    }
+//                    plugin.getServer().getPluginManager().callEvent(new UpdateEvent());
+//                }
+                plugin.getServer().getPluginManager().callEvent(new UpdateEvent());
             }
         }.runTaskTimer(plugin, 0L, 1L);
+    }
+
+    @Override
+    public void close() {
+        updater.cancel();
     }
 
 }

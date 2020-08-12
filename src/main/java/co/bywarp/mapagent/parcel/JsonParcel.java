@@ -9,14 +9,12 @@
 
 package co.bywarp.mapagent.parcel;
 
+import co.bywarp.lightkit.util.Closable;
+import co.bywarp.lightkit.util.JsonUtils;
+import co.bywarp.lightkit.util.logger.Logger;
+import co.bywarp.lightkit.util.timings.Timings;
 import co.bywarp.mapagent.MapAgent;
 import co.bywarp.mapagent.parcel.prefs.ExtruderPreferences;
-
-import co.m1ke.basic.logger.Logger;
-import co.m1ke.basic.utils.Closable;
-import co.m1ke.basic.utils.JsonUtils;
-import co.m1ke.basic.utils.Lang;
-import co.m1ke.basic.utils.timings.Timings;
 
 import org.json.JSONObject;
 
@@ -64,7 +62,7 @@ public class JsonParcel implements Closable {
                     extruder.getBoolean("shouldExtrude")
             );
 
-            timings.complete("Parcel loaded in %c%tms" + Lang.RESET + ".");
+            timings.complete("Parcel loaded in %c%tms%r.");
         } catch (Exception e) {
             logger.except(e, "Error parsing parcel");
         }

@@ -7,14 +7,14 @@
  * in any capacity is unlawful and punishable by the full extent of the law.
  */
 
-package co.bywarp.mapagent.data.game.types.teamdeathmatch;
+package co.bywarp.mapagent.data.game.types.tdm;
 
 import co.bywarp.mapagent.data.game.GameData;
 import co.bywarp.mapagent.data.game.GameDataType;
-import co.bywarp.mapagent.data.game.types.teamdeathmatch.teams.BlueTeam;
-import co.bywarp.mapagent.data.game.types.teamdeathmatch.teams.GreenTeam;
-import co.bywarp.mapagent.data.game.types.teamdeathmatch.teams.RedTeam;
-import co.bywarp.mapagent.data.game.types.teamdeathmatch.teams.YellowTeam;
+import co.bywarp.mapagent.data.game.types.tdm.teams.BlueTeam;
+import co.bywarp.mapagent.data.game.types.tdm.teams.GreenTeam;
+import co.bywarp.mapagent.data.game.types.tdm.teams.RedTeam;
+import co.bywarp.mapagent.data.game.types.tdm.teams.YellowTeam;
 import co.bywarp.mapagent.utils.DataUtils;
 
 public class TeamDeathmatchData extends GameData {

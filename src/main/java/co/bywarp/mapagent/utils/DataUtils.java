@@ -38,7 +38,11 @@ public class DataUtils {
     }
 
     public static MapPoint fromLocation(Location location) {
-        return new MapPoint(location.getX(), location.getY(), location.getZ(), location.getPitch(), location.getYaw());
+        return new MapPoint(location.getX(),
+                location.getY(),
+                location.getZ(),
+                location.getPitch(),
+                location.getYaw());
     }
 
     public static MapPoint fromJson(JSONObject object) {
@@ -63,11 +67,11 @@ public class DataUtils {
         return point;
     }
 
-
     public static void writeJson(File file, JSONObject object) throws IOException {
         FileWriter writer = new FileWriter(file);
         writer.write(object.toString(3));
         writer.flush();
         writer.close();
     }
+
 }

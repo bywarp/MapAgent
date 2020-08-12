@@ -9,14 +9,13 @@
 
 package co.bywarp.mapagent.command.commands;
 
+import co.bywarp.lightkit.util.Ensure;
 import co.bywarp.mapagent.command.Command;
 import co.bywarp.mapagent.command.CommandReturn;
 import co.bywarp.mapagent.data.MapPoint;
 import co.bywarp.mapagent.data.repository.MapDataRepository;
 import co.bywarp.mapagent.utils.DataUtils;
 import co.bywarp.mapagent.utils.text.Lang;
-
-import co.m1ke.basic.utils.Comparables;
 
 import org.bukkit.entity.Player;
 
@@ -47,11 +46,11 @@ public class CenterCommand extends Command {
         }
 
         if (args.length == 3) {
-            if (!Comparables.isDouble(args[0])
-                    || !Comparables.isDouble(args[1])
-                    || !Comparables.isDouble(args[2])) {
-                String whichBad = Lang.cond(!Comparables.isDouble(args[0]), args[0],
-                        Lang.cond(!Comparables.isNumeric(args[1]), args[1], args[2]));
+            if (!Ensure.isDouble(args[0])
+                    || !Ensure.isDouble(args[1])
+                    || !Ensure.isDouble(args[2])) {
+                String whichBad = Lang.cond(!Ensure.isDouble(args[0]), args[0],
+                        Lang.cond(!Ensure.isNumeric(args[1]), args[1], args[2]));
                 client.sendMessage(Lang.generate("Parse", "Invalid Coordinates &f[" + whichBad + "]"));
                 return CommandReturn.EXIT;
             }

@@ -7,7 +7,7 @@
  * in any capacity is unlawful and punishable by the full extent of the law.
  */
 
-package co.bywarp.mapagent.data.game.types.teamdeathmatch.teams;
+package co.bywarp.mapagent.data.game.types.tdm.teams;
 
 import co.bywarp.mapagent.data.game.team.TeamData;
 

@@ -9,15 +9,14 @@
 
 package co.bywarp.mapagent.data.repository;
 
+import co.bywarp.lightkit.util.Ensure;
+import co.bywarp.lightkit.util.JsonUtils;
+import co.bywarp.lightkit.util.logger.Logger;
 import co.bywarp.mapagent.MapAgent;
 import co.bywarp.mapagent.data.MapPoint;
 import co.bywarp.mapagent.data.game.GameDataType;
 import co.bywarp.mapagent.utils.DataUtils;
 import co.bywarp.mapagent.utils.text.Lang;
-
-import co.m1ke.basic.logger.Logger;
-import co.m1ke.basic.utils.Comparables;
-import co.m1ke.basic.utils.JsonUtils;
 
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
@@ -49,7 +48,7 @@ public class MapDataRepository {
         this.containers = new HashMap<>();
 
         try {
-            if (!Comparables.isJson(FileUtils.readFileToString(file))) {
+            if (!Ensure.isJson(FileUtils.readFileToString(file))) {
                 Bukkit.getPluginManager().disablePlugin(plugin);
                 logger.severe("The data repository is not a valid JSON file.");
                 return;
@@ -155,6 +154,29 @@ public class MapDataRepository {
                     && (container.getCenter().getZ() == 0))
                 && container.getGame() != null
                 && GameDataType.match(container.getGame()) != null;
+    }
+
+    /**
+     * Attempts to set the name of
+     * a map container, provided a world.
+     *
+     * @param world the world
+     * @param name the new name
+     */
+    public void setName(World world, String name, Consumer<String> success, Consumer<Exception> failure) {
+        MapDataContainer container = getContainer(world);
+        if (container == null) {
+            failure.accept(new NullPointerException("MapDataContainer is null"));
+            return;
+        }
+
+        container.setName(name);
+        containers.replace(world.getName(), container);
+
+        this.updateStore();
+        this.write();
+
+        success.accept(name);
     }
 
     /**
@@ -267,7 +289,7 @@ public class MapDataRepository {
                     .put("worldName", container.getWorldName())
                     .put("name", container.getName())
                     .put("game", container.getGame())
-                    .put("author", "None")
+                    .put("author", container.getAuthor())
                     .put("center", new JSONObject()
                             .put("x", center.getX())
                             .put("y", center.getY())

@@ -15,9 +15,12 @@ import co.bywarp.mapagent.command.commands.BlocksCommand;
 import co.bywarp.mapagent.command.commands.CenterCommand;
 import co.bywarp.mapagent.command.commands.CreateCommand;
 import co.bywarp.mapagent.command.commands.GametypeCommand;
+import co.bywarp.mapagent.command.commands.GametypeListCommand;
 import co.bywarp.mapagent.command.commands.MapDataCommand;
 import co.bywarp.mapagent.command.commands.MapInfoCommand;
+import co.bywarp.mapagent.command.commands.NameCommand;
 import co.bywarp.mapagent.command.commands.ParseCommand;
+import co.bywarp.mapagent.command.commands.SetupCommand;
 import co.bywarp.mapagent.data.game.GameDataManager;
 import co.bywarp.mapagent.data.game.types.cannons.CannonsData;
 import co.bywarp.mapagent.data.game.types.deathmatch.DeathmatchData;
@@ -30,7 +33,7 @@ import co.bywarp.mapagent.data.game.types.melonwars.MelonWarsData;
 import co.bywarp.mapagent.data.game.types.snowfight.SnowFightData;
 import co.bywarp.mapagent.data.game.types.spleef.SpleefData;
 import co.bywarp.mapagent.data.game.types.sumo.SumoData;
-import co.bywarp.mapagent.data.game.types.teamdeathmatch.TeamDeathmatchData;
+import co.bywarp.mapagent.data.game.types.tdm.TeamDeathmatchData;
 import co.bywarp.mapagent.data.repository.MapDataRepository;
 import co.bywarp.mapagent.parcel.JsonParcel;
 import co.bywarp.mapagent.parser.ChunkParser;
@@ -39,6 +42,7 @@ import co.bywarp.mapagent.utils.PlayerUtils;
 import co.bywarp.mapagent.utils.text.Lang;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -56,11 +60,13 @@ public class MapAgent extends JavaPlugin implements Listener {
     private MapDataRepository repository;
     private GameDataManager manager;
 
+    @Getter private Location globalSpawn;
     @Setter private ChunkParser currentParse;
 
     @Override
     public void onEnable() {
         this.parcel = new JsonParcel(this, new File("agent.json"));
+        this.globalSpawn = new Location(Bukkit.getWorld("Hub"), -22.5, 60.0, -80.5);
         this.commandHandler = new CommandHandler(this);
         this.repository = new MapDataRepository(this, new File("repository.json"));
         this.manager = new GameDataManager(this,
@@ -94,8 +100,11 @@ public class MapAgent extends JavaPlugin implements Listener {
         commandHandler.registerCommand("create", new CreateCommand(repository));
         commandHandler.registerCommand("data", new String[] { "mapdata" }, new MapDataCommand(repository));
         commandHandler.registerCommand("gametype", new String[] { "setgametype" }, new GametypeCommand(repository));
+        commandHandler.registerCommand("gametypes", new String[] { "listgametypes" }, new GametypeListCommand());
         commandHandler.registerCommand("mapinfo", new MapInfoCommand(repository));
+        commandHandler.registerCommand("name", new String[] { "setname" }, new NameCommand(repository));
         commandHandler.registerCommand("parse", new ParseCommand(this, parcel.getExtruderPreferences(), repository, manager));
+        commandHandler.registerCommand("setup", new String[] { "whatdoido", "plshelpme" }, new SetupCommand());
     }
 
     @EventHandler

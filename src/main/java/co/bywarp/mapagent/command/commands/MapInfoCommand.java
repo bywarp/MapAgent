@@ -9,6 +9,7 @@
 
 package co.bywarp.mapagent.command.commands;
 
+import co.bywarp.lightkit.util.StringUtils;
 import co.bywarp.mapagent.command.Command;
 import co.bywarp.mapagent.command.CommandReturn;
 import co.bywarp.mapagent.data.repository.MapDataContainer;
@@ -38,7 +39,7 @@ public class MapInfoCommand extends Command {
         }
 
         MapDataContainer container = repository.getContainer(client.getWorld());
-        client.sendMessage(Lang.generate("Parse", "&f" + container.getWorldName() + " &7is registered as a &f" + container.getGame() + " Map&7."));
+        client.sendMessage(Lang.generate("Parse", "&f" + container.getWorldName() + " &7is registered as a &f" + StringUtils.capitalizeFirst(container.getGame().replaceAll("_", " ")) + " Map&7."));
         client.sendMessage(Lang.colorMessage(" &7- &fMap Name: &e" + container.getName()));
         client.sendMessage(Lang.colorMessage(" &7- &fMap Author: &e" + container.getAuthor()));
         client.sendMessage(Lang.colorMessage(" &7- &fCenter: &e" + Lang.prettifyLocation(container.getCenter())));

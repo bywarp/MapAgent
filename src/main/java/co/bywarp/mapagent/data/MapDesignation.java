@@ -9,19 +9,6 @@
 
 package co.bywarp.mapagent.data;
 
-import co.bywarp.mapagent.MapAgent;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
-
-@Data
-@AllArgsConstructor
-public class MapParseOptions {
-
-    private MapAgent plugin;
-    private String map;
-    private String author;
-    private MapPoint center;
-    private int radius;
-
+public enum MapDesignation {
+    IN_PROGRESS, PUBLISHED, UNKNOWN
 }
